@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دفتر ذكرياتنا - كتاب الحب</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --book-width: 350px;
+            --book-height: 500px;
+            --primary-pink: #ff85a1;
+            --paper-color: #fff0f5; 
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #ffffff; 
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .heart-bg {
+            position: absolute;
+            color: rgba(255, 133, 161, 0.2);
+            font-size: 20px;
+            pointer-events: none;
+            z-index: -1;
+            animation: floatUp linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+
+        .scene {
+            perspective: 1500px;
+            width: var(--book-width);
+            height: var(--book-height);
+            z-index: 10;
+        }
+
+        .book {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+        }
+
+        .page {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            transform-origin: left;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .page-side {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            backface-visibility: hidden;
+            border-radius: 5px 15px 15px 5px;
+            box-shadow: inset 3px 0 10px rgba(0,0,0,0.05), 5px 5px 15px rgba(0,0,0,0.1);
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .front {
+            background-color: #fff0f5; 
+            z-index: 2;
+        }
+
+        .back {
+            background-color: #ffe4e1; 
+            transform: rotateY(180deg);
+            z-index: 1;
+        }
+
+        .cover {
+            background: linear-gradient(135deg, #ff85a1 0%, #ff4d6d 100%);
+            color: white;
+            border-radius: 5px 15px 15px 5px;
+        }
+
+        .page.flipped {
+            transform: rotateY(-180deg);
+        }
+
+        .page-img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 6px solid white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        #music-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: white;
+            padding: 10px;
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            border: 2px solid #ff85a1;
+            transition: 0.3s;
+        }
+        
+        .music-playing {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* الطبقة الشفافة لإجبار التفاعل */
+        #interaction-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 999;
+            background: rgba(255,255,255,0.01);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .hint-text {
+            background: rgba(255, 133, 161, 0.9);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: bold;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-10px);}
+            60% {transform: translateY(-5px);}
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="love-song" loop preload="auto">
+        <source src="https://g.top4top.io/m_37949zvlt1.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- طبقة التفاعل الأولي لتفعيل الصوت تلقائياً -->
+    <div id="interaction-layer" onclick="initExperience()">
+        <div class="hint-text">دوسي هنا يا روحي حتى يفتح الدفتر ❤️</div>
+    </div>
+
+    <div id="music-btn" onclick="toggleMusic(event)" style="display:none;">
+        <svg id="music-icon" class="w-6 h-6 text-pink-500" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z"></path>
+        </svg>
+    </div>
+
+    <div class="scene">
+        <div class="book" id="book">
+            
+            <!-- غلاف الدفتر -->
+            <div class="page" style="z-index: 10;" onclick="flipPage(this, 10)">
+                <div class="page-side cover">
+                    <div class="text-5xl mb-6">📖</div>
+                    <h1 class="text-3xl font-bold font-amiri text-center leading-tight">أحلى حكاياتنا<br>يا بعد روحي</h1>
+                    <div class="w-16 h-1 bg-white my-6 opacity-50"></div>
+                    <p class="text-lg opacity-90 text-center">قصة حبنا اللي ما تخلص..</p>
+                    <p class="mt-12 text-sm italic font-light animate-pulse">دوسي هنا حتى يفتح القلب ❤️</p>
+                </div>
+                <div class="page-side back">
+                    <div class="flex flex-col items-center justify-center h-full">
+                         <span class="text-4xl mb-4">✨</span>
+                         <p class="text-xl text-pink-700 font-bold text-center">يا أول وآخر حب..</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- صفحة الصورة الأولى -->
+            <div class="page" style="z-index: 9;" onclick="flipPage(this, 9)">
+                <div class="page-side front">
+                    <img src="https://k.top4top.io/p_3794kminm1.jpg" class="page-img" alt="Memory 1">
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">أول ضحكة شفتها..</h2>
+                    <p class="text-center text-gray-600 text-sm leading-relaxed">من يوم الشفتج والدنيا ضحكتلي.. إنتي العيد قبل ما يجي العيد يا بعد عيني وعمري.</p>
+                </div>
+                <div class="page-side back">
+                    <div class="flex flex-col items-center justify-center h-full">
+                        <p class="text-lg italic text-pink-600 font-bold">"إنتي قطعة من الجنة بدنيتي"</p>
+                        <span class="text-3xl mt-4">🌸</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- صفحة الصورة الثانية -->
+            <div class="page" style="z-index: 8;" onclick="flipPage(this, 8)">
+                <div class="page-side front">
+                    <img src="https://b.top4top.io/p_3794trau71.jpg" class="page-img" alt="Memory 2">
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">بكل عيد..</h2>
+                    <p class="text-center text-gray-600 text-sm leading-relaxed">كل عيد أضحى وإنتي بطلة قصتي وأحلى شي عندي.. ربي يخليج إلي طول العمر وما يحرمني منج.</p>
+                </div>
+                <div class="page-side back">
+                    <div class="flex flex-col items-center justify-center h-full">
+                        <p class="text-lg italic text-pink-600 font-bold">"حبج هو عيدي الحقيقي"</p>
+                        <span class="text-3xl mt-4">💖</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- صفحة الصورة الثالثة -->
+            <div class="page" style="z-index: 7;" onclick="flipPage(this, 7)">
+                <div class="page-side front">
+                    <img src="https://d.top4top.io/p_3794aprkh1.jpg" class="page-img" alt="Memory 3">
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">يا روح الروح..</h2>
+                    <p class="text-center text-gray-600 text-sm leading-relaxed">جمالج بكل صورة يحجي حكاية حب ما تخلص.. كل عام وإنتي بخير يا نور عيوني وعساج من عواده.</p>
+                </div>
+                <div class="page-side back">
+                    <div class="flex flex-col items-center justify-center h-full">
+                        <p class="text-lg italic text-pink-600 font-bold">"إنتي النعمة اللي أشكر ربي عليها"</p>
+                        <span class="text-3xl mt-4">✨</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- الصفحة الأخيرة -->
+            <div class="page" style="z-index: 6;">
+                <div class="page-side front">
+                    <div class="text-center">
+                        <div class="text-6xl mb-6">🐑❤️</div>
+                        <h2 class="text-2xl font-bold text-pink-600 mb-4">عيدج مبارك يا روحي</h2>
+                        <p class="text-gray-700 leading-relaxed px-4">أتمنى نبقى سوية بكل عيد، وضحكتج ما تفارق وجهج أبداً. أحبج هواي يا أغلى ما عندي بالكون!</p>
+                        <div class="mt-8 flex justify-center gap-4">
+                             <span class="text-3xl animate-bounce">💖</span>
+                             <span class="text-3xl animate-bounce" style="animation-delay: 0.2s">✨</span>
+                             <span class="text-3xl animate-bounce" style="animation-delay: 0.4s">💖</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const audio = document.getElementById('love-song');
+        const musicBtn = document.getElementById('music-btn');
+        const interactionLayer = document.getElementById('interaction-layer');
+
+        // دالة تشغيل التجربة بالكامل عند أول لمسة
+        function initExperience() {
+            // تشغيل الموسيقى
+            audio.play().then(() => {
+                musicBtn.classList.add('music-playing');
+                musicBtn.style.display = 'block';
+            }).catch(e => console.log("Audio play failed, needs interaction."));
+
+            // إخفاء طبقة التفاعل
+            interactionLayer.style.display = 'none';
+            
+            // تفعيل حركة القلوب بشكل أسرع في البداية
+            for(let i=0; i<10; i++) {
+                setTimeout(createFloatingHearts, i * 100);
+            }
+        }
+
+        function flipPage(pageElement, zIndex) {
+            if (!pageElement.classList.contains('flipped')) {
+                pageElement.classList.add('flipped');
+                setTimeout(() => {
+                    pageElement.style.zIndex = 1;
+                }, 500);
+            } else {
+                pageElement.classList.remove('flipped');
+                pageElement.style.zIndex = zIndex;
+            }
+        }
+
+        function toggleMusic(event) {
+            event.stopPropagation();
+            if (audio.paused) {
+                audio.play();
+                musicBtn.classList.add('music-playing');
+            } else {
+                audio.pause();
+                musicBtn.classList.remove('music-playing');
+            }
+        }
+
+        // تحريك الكتاب مع الماوس (اختياري للكمبيوتر)
+        document.addEventListener('mousemove', (e) => {
+            const x = (window.innerWidth / 2 - e.clientX) / 45;
+            const y = (window.innerHeight / 2 - e.clientY) / 45;
+            const book = document.getElementById('book');
+            book.style.transform = `rotateX(${y}deg) rotateY(${-x}deg)`;
+        });
+
+        // إنشاء القلوب المتطايرة
+        function createFloatingHearts() {
+            const heartIcons = ['❤', '💖', '🤍', '🌸', '✨'];
+            const heart = document.createElement('div');
+            heart.className = 'heart-bg';
+            heart.innerHTML = heartIcons[Math.floor(Math.random() * heartIcons.length)];
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDuration = (Math.random() * 5 + 8) + 's';
+            heart.style.fontSize = (Math.random() * 15 + 15) + 'px';
+            
+            document.body.appendChild(heart);
+            
+            setTimeout(() => {
+                heart.remove();
+            }, 10000);
+        }
+
+        window.onload = function() {
+            setInterval(createFloatingHearts, 500);
+        };
+    </script>
+</body>
+</html>
